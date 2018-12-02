@@ -11,7 +11,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.ear
 *.zip
@@ -91,3 +90,4 @@ fabric.properties
 .idea
 .idea/codeStyles/codeStyleConfig.xml
 CECScraper.iml
+res/config.json
