@@ -1,5 +1,7 @@
 package scraper;
 
+import com.gargoylesoftware.htmlunit.*;
+import com.gargoylesoftware.htmlunit.html.*;
 import org.apache.commons.io.*;
 import org.json.*;
 
@@ -10,26 +12,38 @@ public class Scraper {
     static final String CONFIG_PATH = "C:\\Users\\Lukas\\Documents\\Programming" +
             "-Technology\\CECScraper\\CECScraper\\res\\config.json";
     
-    private String netid;
-    private String password;
+    private JSONObject configFile;
+    private WebClient browser;
     
     
-    public Scraper() {
-        
+    Scraper() throws Exception {
         // Parse config.json
-        try {
-            InputStream is = new FileInputStream(CONFIG_PATH);
-            JSONObject config = new JSONObject(IOUtils.toString(is, "UTF-8"));
-            this.netid = config.getString("netid");
-            this.password = config.getString("password");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        InputStream is = new FileInputStream(CONFIG_PATH);
+        this.configFile = new JSONObject(IOUtils.toString(is, "UTF-8"));
         
-        System.out.println(netid + password);
+        // Log in
+        this.browser = new WebClient(BrowserVersion.FIREFOX_52);
+        HtmlPage currentPage = browser.getPage(configFile.getString("goal_page"));
+        // Check if we were redirected to login page
+        if (!currentPage.getUrl().toString().equals(configFile.getString("goal_page"))) {
+            currentPage = login(currentPage);
+            if (!currentPage.getUrl().toString().equals(configFile.getString("goal_page"))) {
+                throw new RuntimeException("Unable to login");
+            }
+        }
+        System.out.println(currentPage.toString());
     }
     
-    public static void main(String[] args) {
+    HtmlPage login(HtmlPage currentPage) throws IOException {
+        HtmlForm loginForm = currentPage.getFormByName("query");
+        loginForm.getInputByName("user").setValueAttribute(this.configFile.getString("netid"));
+        loginForm.getInputByName("pass").setValueAttribute(this.configFile.getString("password"));
+        return loginForm.getInputByName("submit").click();
+    }
+    
+    
+    
+    public static void main(String[] args) throws Exception{
         new Scraper();
     }
 }
