@@ -27,9 +27,8 @@ public class Scraper {
         // Check if we were redirected to login page
         if (!currentPage.getUrl().toString().equals(configFile.getString("goal_page"))) {
             currentPage = login(currentPage);
-            if (!currentPage.getUrl().toString().equals(configFile.getString("goal_page"))) {
-                throw new RuntimeException("Unable to login");
-            }
+            assert currentPage.getUrl().toString().equals(configFile.getString("goal_page")) :
+                    "Unable to login";
         }
         System.out.println(currentPage.getPage().toString());
     }
