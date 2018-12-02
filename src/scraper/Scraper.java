@@ -2,10 +2,12 @@ package scraper;
 
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.*;
+import com.google.gson.*;
 import org.apache.commons.io.*;
 import org.json.*;
 
 import java.io.*;
+import java.util.*;
 
 public class Scraper {
     
@@ -42,8 +44,11 @@ public class Scraper {
     }
     
     // Scrape all of the data
-    void scrape(HtmlPage mainDirectoryPage) {
-    
+    void scrape(HtmlPage mainDirectoryPage) throws IOException {
+        Gson gson = new Gson();
+        Set<Course> evals = new HashSet<>();
+        
+        gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
     }
     
     public static void main(String[] args) throws Exception {

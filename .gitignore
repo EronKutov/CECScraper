@@ -91,3 +91,5 @@ fabric.properties
 .idea/codeStyles/codeStyleConfig.xml
 CECScraper.iml
 res/config.json
+src/Tests.java
+res/data.json
