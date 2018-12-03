@@ -3,6 +3,7 @@ package scraper;
 public class Course {
     
     String department;
+    String campus;
     String courseID;
     String section;
     String instructor;
