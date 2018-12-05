@@ -13,7 +13,7 @@ import java.util.regex.*;
 
 public class Scraper {
     
-    static final String CONFIG_PATH = "C:\\Users\\Lukas\\Documents\\Programming-Technology\\CECScraper\\CECScraper\\res\\config.json";
+    static final String CONFIG_PATH = "res\\config.json";
     
     private JSONObject configFile;
     private WebClient browser;
@@ -67,7 +67,6 @@ public class Scraper {
                 
                 // If link starts with "a/" for example
                 if (anchor.getHrefAttribute().startsWith(href.toString().charAt(0) + "/")) {
-                    
                     TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
                     HtmlPage course = anchor.click();
                     System.out.println("Scraping " + course.getUrl());
