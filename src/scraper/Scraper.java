@@ -13,7 +13,7 @@ import java.util.regex.*;
 
 public class Scraper {
     
-    static final String CONFIG_PATH = "D:\\Programming Projects\\CECScraper\\res\\config.json";
+    static final String CONFIG_PATH = "C:\\Users\\Lukas\\Documents\\Programming-Technology\\CECScraper\\CECScraper\\res\\config.json";
     
     private JSONObject configFile;
     private WebClient browser;
@@ -48,7 +48,11 @@ public class Scraper {
     
     // Scrape all of the data
     void scrape(HtmlPage mainDirectoryPage) throws IOException, InterruptedException {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .serializeNulls()
+                .create();
+        
         for (int i = 0; i < 23; i++) { // a through w
             Set<Course> evals = new HashSet<>();
             
@@ -70,9 +74,13 @@ public class Scraper {
                     evals.add(scrapeCoursePage(course));
                 }
             }
-            String out = configFile.getString("scrape_output_dir") + href.toString();
+            
+            // Write current set to output
+            String out = configFile.getString("scrape_output_dir") + href.toString() + ".json";
             System.out.println("Writing to " + out);
-            gson.toJson(evals, new FileWriter(out));
+            FileWriter writer = new FileWriter(out);
+            gson.toJson(evals, writer);
+            writer.flush();
         }
     }
     
