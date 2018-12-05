@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Course {
     
+    String url; // The evaluation URL
     String department; // The department this class is in
     String courseID; // The course ID: eg. CSE143, AA101
     String section; // The section: eg. A, B

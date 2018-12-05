@@ -87,6 +87,9 @@ public class Scraper {
     Course scrapeCoursePage(HtmlPage coursePage) {
         Course course = new Course();
         
+        // Get URL
+        course.url = coursePage.getUrl().toString();
+        
         // Interpret text in the title for information
         String title = coursePage.getTitleText();
         
