@@ -13,8 +13,7 @@ import java.util.regex.*;
 
 public class Scraper {
     
-    static final String CONFIG_PATH = "C:\\Users\\Lukas\\Documents\\Programming" +
-            "-Technology\\CECScraper\\CECScraper\\res\\config.json";
+    static final String CONFIG_PATH = "D:\\Programming Projects\\CECScraper\\res\\config.json";
     
     private JSONObject configFile;
     private WebClient browser;
@@ -71,7 +70,6 @@ public class Scraper {
                     HtmlPage course = anchor.click();
                     System.out.println("Scraping " + course.getUrl());
                     evals.add(scrapeCoursePage(course));
-                    
                 }
             }
         }
@@ -87,24 +85,21 @@ public class Scraper {
         String title = coursePage.getTitleText();
         
         // Get department
-        Pattern titleDepartmentPattern = Pattern.compile("^.*?(?=[A-Z]+\\s+)");
-        Matcher titleDepartmentMatcher = titleDepartmentPattern.matcher(title);
+        Matcher titleDepartmentMatcher = Pattern.compile("^.*?(?=[A-Z]+\\s+)").matcher(title);
         titleDepartmentMatcher.find();
         
         course.department = titleDepartmentMatcher.group();
         
         // Get course ID
         String titleReverse = new StringBuilder(title).reverse().toString();
-        Pattern titleIDPattern = Pattern.compile("\\d{3}.*?(?=[a-z])");
-        Matcher titleIDMatcher = titleIDPattern.matcher(titleReverse);
+        Matcher titleIDMatcher = Pattern.compile("\\d{3}.*?(?=[a-z])").matcher(titleReverse);
         titleIDMatcher.find();
         
         course.courseID =
                 removeBlankSpace(new StringBuilder(titleIDMatcher.group()).reverse()).toString();
         
         // Get instructor / extra info
-        Pattern titleSecondHalfPattern = Pattern.compile("(?<=\\d{3}).*");
-        Matcher titleSecondHalfMatcher = titleSecondHalfPattern.matcher(title);
+        Matcher titleSecondHalfMatcher = Pattern.compile("(?<=\\d{3}).*").matcher(title);
         titleSecondHalfMatcher.find();
         
         String[] secondHalfInformation = titleSecondHalfMatcher.group().trim().split("\\s+");
@@ -112,11 +107,61 @@ public class Scraper {
         course.instructor = secondHalfInformation[1] + " " + secondHalfInformation[2];
         course.instructorTitle = secondHalfInformation[3];
         for (int i = 4; i < secondHalfInformation.length - 1; i++) {
-            course.instructorTitle = " " + secondHalfInformation[i];
-            //TODO this is broken, only returns one word
+            course.instructorTitle += " " + secondHalfInformation[i];
         }
         course.quarter = secondHalfInformation[secondHalfInformation.length - 1];
         
+        // Grab the rest of the page
+        String pageText = coursePage.asText();
+        
+        // Get form
+        Matcher formMatcher = Pattern.compile("(?<=Form )[A-Z](?=:)").matcher(pageText);
+        formMatcher.find();
+        
+        course.IASystemForm = formMatcher.group();
+        
+        // Get surveyed and enrolled
+        Matcher surveyedMatcher = Pattern.compile("(?<=\")\\d+(?=\" surveyed)").matcher(pageText);
+        surveyedMatcher.find();
+        
+        course.surveyed = Integer.parseInt(surveyedMatcher.group());
+        
+        Matcher enrolledMatcher = Pattern.compile("(?<=\")\\d+(?=\" enrolled)").matcher(pageText);
+        enrolledMatcher.find();
+        
+        course.enrolled = Integer.parseInt(enrolledMatcher.group());
+        
+        // Get course evaluation arrays
+        Matcher wholeMatcher =
+                Pattern.compile("(?<=The course as a whole:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        Matcher contentMatcher =
+                Pattern.compile("(?<=The course content:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        Matcher contributionMatcher =
+                Pattern.compile("(?<=Instructor's contribution:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        Matcher effectivenessMatcher =
+                Pattern.compile("(?<=Instructor's effectiveness:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        Matcher interestMatcher =
+                Pattern.compile("(?<=Instuctor's interest:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        Matcher learnedMatcher =
+                Pattern.compile("(?<=Amount learned:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        Matcher gradingMatcher =
+                Pattern.compile("(?<=Grading techniques:).+(?=\\d\\.\\d{2})").matcher(pageText);
+        
+        wholeMatcher.find();
+        contentMatcher.find();
+        contributionMatcher.find();
+        effectivenessMatcher.find();
+        interestMatcher.find();
+        learnedMatcher.find();
+        gradingMatcher.find();
+        
+        course.courseAsWhole = parsePercentArray(wholeMatcher.group().trim());
+        course.courseContent = parsePercentArray(contentMatcher.group().trim());
+        course.instructorContribution = parsePercentArray(contentMatcher.group().trim());
+        course.instructorEffectiveness = parsePercentArray(effectivenessMatcher.group().trim());
+        course.instructorInterest = parsePercentArray(interestMatcher.group().trim());
+        course.amountLearned = parsePercentArray(learnedMatcher.group().trim());
+        course.gradingTechniques = parsePercentArray(gradingMatcher.group().trim());
         
         return course;
     }
@@ -130,6 +175,15 @@ public class Scraper {
         }
         sb.delete(j, sb.length());
         return sb;
+    }
+    
+    private double[] parsePercentArray(String arrayString) {
+        String[] array = arrayString.split("\\s");
+        double[] out = new double[array.length];
+        for (int i = 0; i < array.length; i++) {
+            out[i] = Double.parseDouble(array[i].substring(0, array[i].length() - 1));
+        }
+        return out;
     }
     
     public static void main(String[] args) throws Exception {
