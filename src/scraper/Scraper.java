@@ -49,37 +49,30 @@ public class Scraper {
     // Scrape all of the data
     void scrape(HtmlPage mainDirectoryPage) throws IOException, InterruptedException {
         Gson gson = new Gson();
-        Set<Course> evals = new HashSet<>();
-        try {
-            for (int i = 0; i < 23; i++) { // a through w
-                TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
+        for (int i = 0; i < 23; i++) { // a through w
+            Set<Course> evals = new HashSet<>();
+            
+            // Get to letter directory
+            StringBuilder href = new StringBuilder().append((char) ('a' + i)).append("-toc.html");
+            HtmlAnchor tocAnchor = mainDirectoryPage.getAnchorByHref(href.toString());
+            HtmlPage tocPage = tocAnchor.click();
+            
+            // Click on courses in directory
+            List<HtmlAnchor> anchors = tocPage.getAnchors();
+            for (HtmlAnchor anchor : anchors) {
                 
-                // Get to letter directory
-                StringBuilder href = new StringBuilder().append((char) ('a' + i)).append("-toc.html");
-                HtmlAnchor tocAnchor = mainDirectoryPage.getAnchorByHref(href.toString());
-                HtmlPage tocPage = tocAnchor.click();
-                
-                // Click on courses in directory
-                List<HtmlAnchor> anchors = tocPage.getAnchors();
-                for (HtmlAnchor anchor : anchors) {
+                // If link starts with "a/" for example
+                if (anchor.getHrefAttribute().startsWith(href.toString().charAt(0) + "/")) {
                     
-                    // If link starts with "a/" for example
-                    if (anchor.getHrefAttribute().startsWith(href.toString().charAt(0) + "/")) {
-                        
-                        TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
-                        HtmlPage course = anchor.click();
-                        System.out.println("Scraping " + course.getUrl());
-                        evals.add(scrapeCoursePage(course));
-                    }
+                    TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
+                    HtmlPage course = anchor.click();
+                    System.out.println("Scraping " + course.getUrl());
+                    evals.add(scrapeCoursePage(course));
                 }
             }
-            
-            System.out.println(gson.toJson(evals));
-            gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
-        } catch (Exception e) {
-            System.out.println(gson.toJson(evals));
-            gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
-            e.printStackTrace();
+            String out = configFile.getString("scrape_output_dir") + href.toString();
+            System.out.println("Writing to " + out);
+            gson.toJson(evals, new FileWriter(out));
         }
     }
     
