@@ -76,7 +76,9 @@ public class Scraper {
             }
             
             // Write current set to output
-            String out = configFile.getString("scrape_output_dir") + href.toString() + ".json";
+            String out =
+                    configFile.getString("scrape_output_dir") + href.toString().substring(0, 5) +
+                            ".json";
             System.out.println("Writing to " + out);
             FileWriter writer = new FileWriter(out);
             gson.toJson(evals, writer);
