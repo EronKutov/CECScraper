@@ -74,6 +74,7 @@ public class Scraper {
             }
         }
         
+        System.out.println(gson.toJson(evals));
         gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
     }
     
@@ -147,21 +148,26 @@ public class Scraper {
         Matcher gradingMatcher =
                 Pattern.compile("(?<=Grading techniques:).+(?=\\d\\.\\d{2})").matcher(pageText);
         
-        wholeMatcher.find();
-        contentMatcher.find();
-        contributionMatcher.find();
-        effectivenessMatcher.find();
-        interestMatcher.find();
-        learnedMatcher.find();
-        gradingMatcher.find();
+        if (wholeMatcher.find())
+            course.courseAsWhole = parsePercentArray(wholeMatcher.group().trim());
         
-        course.courseAsWhole = parsePercentArray(wholeMatcher.group().trim());
-        course.courseContent = parsePercentArray(contentMatcher.group().trim());
-        course.instructorContribution = parsePercentArray(contentMatcher.group().trim());
-        course.instructorEffectiveness = parsePercentArray(effectivenessMatcher.group().trim());
-        course.instructorInterest = parsePercentArray(interestMatcher.group().trim());
-        course.amountLearned = parsePercentArray(learnedMatcher.group().trim());
-        course.gradingTechniques = parsePercentArray(gradingMatcher.group().trim());
+        if (contentMatcher.find())
+            course.courseContent = parsePercentArray(contentMatcher.group().trim());
+        
+        if (contributionMatcher.find())
+            course.instructorContribution = parsePercentArray(contentMatcher.group().trim());
+        
+        if (effectivenessMatcher.find())
+            course.instructorEffectiveness = parsePercentArray(effectivenessMatcher.group().trim());
+        
+        if (interestMatcher.find())
+            course.instructorInterest = parsePercentArray(interestMatcher.group().trim());
+        
+        if (learnedMatcher.find())
+            course.amountLearned = parsePercentArray(learnedMatcher.group().trim());
+        
+        if (gradingMatcher.find())
+            course.gradingTechniques = parsePercentArray(gradingMatcher.group().trim());
         
         return course;
     }
