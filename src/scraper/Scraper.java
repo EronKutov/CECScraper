@@ -50,32 +50,37 @@ public class Scraper {
     void scrape(HtmlPage mainDirectoryPage) throws IOException, InterruptedException {
         Gson gson = new Gson();
         Set<Course> evals = new HashSet<>();
-        
-        for (int i = 0; i < 23; i++) { // a through w
-            TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
-            
-            // Get to letter directory
-            StringBuilder href = new StringBuilder().append((char) ('a' + i)).append("-toc.html");
-            HtmlAnchor tocAnchor = mainDirectoryPage.getAnchorByHref(href.toString());
-            HtmlPage tocPage = tocAnchor.click();
-            
-            // Click on courses in directory
-            List<HtmlAnchor> anchors = tocPage.getAnchors();
-            for (HtmlAnchor anchor : anchors) {
+        try {
+            for (int i = 0; i < 23; i++) { // a through w
+                TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
                 
-                // If link starts with "a/" for example
-                if (anchor.getHrefAttribute().startsWith(href.toString().charAt(0) + "/")) {
+                // Get to letter directory
+                StringBuilder href = new StringBuilder().append((char) ('a' + i)).append("-toc.html");
+                HtmlAnchor tocAnchor = mainDirectoryPage.getAnchorByHref(href.toString());
+                HtmlPage tocPage = tocAnchor.click();
+                
+                // Click on courses in directory
+                List<HtmlAnchor> anchors = tocPage.getAnchors();
+                for (HtmlAnchor anchor : anchors) {
                     
-                    TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
-                    HtmlPage course = anchor.click();
-                    System.out.println("Scraping " + course.getUrl());
-                    evals.add(scrapeCoursePage(course));
+                    // If link starts with "a/" for example
+                    if (anchor.getHrefAttribute().startsWith(href.toString().charAt(0) + "/")) {
+                        
+                        TimeUnit.MILLISECONDS.sleep(configFile.getInt("delay_milliseconds"));
+                        HtmlPage course = anchor.click();
+                        System.out.println("Scraping " + course.getUrl());
+                        evals.add(scrapeCoursePage(course));
+                    }
                 }
             }
+            
+            System.out.println(gson.toJson(evals));
+            gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
+        } catch (Exception e) {
+            System.out.println(gson.toJson(evals));
+            gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
+            e.printStackTrace();
         }
-        
-        System.out.println(gson.toJson(evals));
-        gson.toJson(evals, new FileWriter(configFile.getString("scrape_output_dir")));
     }
     
     // Grab course data from a course page and return as a Course object
@@ -89,7 +94,7 @@ public class Scraper {
         Matcher titleDepartmentMatcher = Pattern.compile("^.*?(?=[A-Z]+\\s+)").matcher(title);
         titleDepartmentMatcher.find();
         
-        course.department = titleDepartmentMatcher.group();
+        course.department = titleDepartmentMatcher.group().trim();
         
         // Get course ID
         String titleReverse = new StringBuilder(title).reverse().toString();
@@ -134,9 +139,9 @@ public class Scraper {
         
         // Get course evaluation arrays
         Matcher wholeMatcher =
-                Pattern.compile("(?<=The course as a whole:).+(?=\\d\\.\\d{2})").matcher(pageText);
+                Pattern.compile("(?<=as a whole:).+(?=\\d\\.\\d{2})").matcher(pageText);
         Matcher contentMatcher =
-                Pattern.compile("(?<=The course content:).+(?=\\d\\.\\d{2})").matcher(pageText);
+                Pattern.compile("(?<=content:).+(?=\\d\\.\\d{2})").matcher(pageText);
         Matcher contributionMatcher =
                 Pattern.compile("(?<=Instructor's contribution:).+(?=\\d\\.\\d{2})").matcher(pageText);
         Matcher effectivenessMatcher =
@@ -155,7 +160,7 @@ public class Scraper {
             course.courseContent = parsePercentArray(contentMatcher.group().trim());
         
         if (contributionMatcher.find())
-            course.instructorContribution = parsePercentArray(contentMatcher.group().trim());
+            course.instructorContribution = parsePercentArray(contributionMatcher.group().trim());
         
         if (effectivenessMatcher.find())
             course.instructorEffectiveness = parsePercentArray(effectivenessMatcher.group().trim());
