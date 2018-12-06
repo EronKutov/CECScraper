@@ -35,5 +35,36 @@ public class Course {
     public String toString() {
         return courseID + " " + quarter + " " + instructor;
     }
+    
+    public String toCSVLine() {
+        StringBuilder out =
+                new StringBuilder(url + "," +
+                        department + "," +
+                        courseID + "," +
+                        section + "," +
+                        instructor + "," +
+                        instructorTitle + "," +
+                        quarter + "," +
+                        IASystemForm + "," +
+                        surveyed + "," +
+                        enrolled + ",");
+        
+        double[][] arrays = {courseAsWhole, courseContent, instructorContribution,
+                instructorEffectiveness, instructorInterest, amountLearned, gradingTechniques};
+        
+        for (double[] arr : arrays) {
+            if (arr == null) {
+                for (int i = 0; i < 6; i++) {
+                    out.append("null,");
+                }
+            } else {
+                for (double d : arr) {
+                    out.append(d + ",");
+                }
+            }
+        }
+        
+        return out.toString();
+    }
 }
 
