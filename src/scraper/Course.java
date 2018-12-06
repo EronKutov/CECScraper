@@ -63,6 +63,7 @@ public class Course {
                 }
             }
         }
+        out.deleteCharAt(out.length() - 1);
         
         return out.toString();
     }
