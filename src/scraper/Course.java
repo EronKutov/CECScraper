@@ -1,8 +1,6 @@
 package scraper;
 
-import java.util.*;
-
-public class Course {
+public class Course implements Comparable<Course> {
     
     String url; // The evaluation URL
     String department; // The department this class is in
@@ -66,6 +64,11 @@ public class Course {
         out.deleteCharAt(out.length() - 1);
         
         return out.toString();
+    }
+    
+    @Override
+    public int compareTo(Course course) {
+        return url.compareTo(course.url);
     }
 }
 

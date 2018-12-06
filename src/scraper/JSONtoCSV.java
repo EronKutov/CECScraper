@@ -8,6 +8,9 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+/*
+    Will convert out outputted json files to csv
+ */
 public class JSONtoCSV {
     
     public static void main(String[] args) throws Exception {
